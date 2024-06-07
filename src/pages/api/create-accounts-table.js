@@ -2,7 +2,8 @@ import { sql } from '@vercel/postgres'
 
 export default async function handler(request, response) {
     try {
-        const result = await sql`CREATE TABLE Accounts ( Name varchar(255), Email varchar(255), Password varchar(255) );`
+        const result = await sql`CREATE TABLE Accounts ( Id uuid PRIMARY KEY DEFAULT uuid_generate_v4(), Name varchar(255) NOT NULL, Email varchar(255) UNIQUE NOT NULL, Password varchar(255) NOT NULL, Chats JSONB DEFAULT '[]'::jsonb );`
+        //const result = await sql`DROP TABLE Accounts`
         return response.status(200).json({ result })
     } catch (error) {
         return response.status(500).json({ error })
