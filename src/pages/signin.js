@@ -2,7 +2,7 @@ import Link from 'next/link'
 import React, { useContext, useState } from 'react'
 import AuthContext from '../../contexts/authContext'
 
-export default function signin() {
+export default function Signin() {
   const { login } = useContext(AuthContext)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

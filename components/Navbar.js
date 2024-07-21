@@ -5,7 +5,7 @@ import AuthContext from "../contexts/authContext";
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext)
   return (
-    <header className="sticky top-0 z-50 p-2 md:px-10 bg-blue-400 grid grid-cols-3">
+    <header className="sticky top-0 z-50 p-2 px-10 bg-white grid grid-cols-3">
 
         <div className="flex items-center">
             <h1>LOGO</h1>

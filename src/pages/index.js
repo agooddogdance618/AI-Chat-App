@@ -1,7 +1,7 @@
-import Home from "./Home";
+import Home from "../../components/Home";
 
 export default function index() {
   return (
-    <Home/>
-  );
+      <Home/>
+  )
 }
