@@ -11,7 +11,7 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || password != confirmPassword) {
       alert("BAD")
       return
     }

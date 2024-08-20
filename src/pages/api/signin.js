@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres'
 import jwt from 'jsonwebtoken'
+import bcryptjs from 'bcryptjs'
 
 const JWT_SECRET_KEY = 'secret'
 const TOKEN_EXPIRATION = "1000000"
@@ -16,7 +17,7 @@ export default async function handler(request, response) {
         if (!account) {
             return response.status(404).json({ error: "no account found" })
         }
-        if (password !== account.password) {
+        if (!bcryptjs.compare(password, account.password)) {
             return response.status(401).json({ error: "incorrect password" })
         }
         const token = jwt.sign({ accountId: account.id, name: account.name , email: account.email }, JWT_SECRET_KEY, { expiresIn:TOKEN_EXPIRATION })
