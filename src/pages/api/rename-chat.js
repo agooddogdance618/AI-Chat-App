@@ -3,12 +3,12 @@ import { validate as isUUID } from 'uuid'
 import { withAuth } from "../../../lib/auth"
 
 export default withAuth(async (request, response) => {
-    if (request.method !== 'POST') {
+    if (request.method !== 'PATCH') {
         response.status(405).json({ error: "Invalid HTTP method" })
         return
     }
 
-    const { id, message } = request.body
+    const { id, name } = request.body
     const { accountId } = request.user
 
     if(!isUUID(id)) {
@@ -23,10 +23,7 @@ export default withAuth(async (request, response) => {
             response.status(400).json({ error: "Invalid chat ID" })
             return
         }
-        const { rows: chatRows } = await sql`SELECT * FROM Chats WHERE Id = ${id}`
-        const chat = chatRows[0]
-        const updatedMessages = [...chat.messages, message]
-        await sql`UPDATE Chats SET messages = ${JSON.stringify(updatedMessages)}::jsonb WHERE id = ${id};`
+        await sql`UPDATE Chats SET Name = ${name} WHERE Id = ${id};`
         response.status(200).end()
         return
     } catch {

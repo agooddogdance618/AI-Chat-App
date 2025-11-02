@@ -2,14 +2,20 @@ import { sql } from '@vercel/postgres'
 import bcryptjs from 'bcryptjs'
 
 export default async function handler(request, response) {
-    try {
-       const { name, email, password } = request.body
-       const hashedPassword = await bcryptjs.hash(password, 10)
-       await sql`INSERT INTO Accounts (Name, Email, Password) VALUES (${name}, ${email}, ${hashedPassword});`
-    } catch (error) {
-        return response.status(500).json({ error })
+    if (request.method !== 'POST') {
+        response.status(405).json({ error: "Invalid HTTP method" })
+        return
     }
 
-    const accounts = await sql`SELECT * FROM Accounts;`
-    return response.status(200).json({ accounts })
+    const { name, email, password } = request.body
+
+    try {
+        const hashedPassword = await bcryptjs.hash(password, 10)
+        await sql`INSERT INTO Accounts (Name, Email, Password) VALUES (${name}, ${email}, ${hashedPassword});`
+        response.status(200).end()
+        return
+    } catch {
+        response.status(500).end()
+        return
+    }
 }

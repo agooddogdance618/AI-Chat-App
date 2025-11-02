@@ -6,7 +6,20 @@ module.exports = {
     // "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      scrollbarGutter: {
+        stable: 'stable',
+      },
+    },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar'),
+    function ({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-gutter-stable': {
+          scrollbarGutter: 'stable',
+        },
+      });
+    },
+  ],
 };

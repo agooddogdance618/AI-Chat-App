@@ -5,55 +5,106 @@ import AuthContext from '../../../contexts/authContext'
 
 export default function Chat() {
   const router = useRouter()
-  const { user } = useContext(AuthContext)
+  const { id, new: isNew } = router.query
+  const { user, logout } = useContext(AuthContext)
   const [userChatIds, setUserChatIds] = useState([])
-  const [chat, setChat] = useState(null)
+  const [chatIdsError, setChatIdsError] = useState(false)
+  const [chat, setChat] = useState(undefined)
 
   useEffect(() => {
-    if(user && user.accountId) {
+    if (!user?.accountId) return
+
+    if (chatIdsError || userChatIds.length === 0) {
       fetchChatIds()
     }
-  }, [user])
+  }, [user?.accountId, id, chatIdsError])
 
   useEffect(() => {
-    if (userChatIds.length !== 0) {
-      if (!userChatIds.includes(router.query.id)) {
-        router.push('/')
+    if (!id || userChatIds.length === 0) return
+
+    setChat(undefined)
+
+    if (userChatIds.includes(id)) {
+      if (isNew === 'true') {
+        const interval = setInterval(async () => {
+          const newChat = await fetchChat()
+          const lastMsg = newChat?.messages?.[newChat.messages.length - 1]
+          if (lastMsg?.sender === 'AI') {
+            clearInterval(interval)
+            router.replace(`/chat/${id}`, undefined, { shallow: true })
+          }
+        }, 1500)
+
+        return () => clearInterval(interval)
       } else {
-        fetchChat()
+        fetchChat()        
       }
+    } else {
+      setChat(null)
+      console.error("Invalid chat ID")
+      router.replace('/')
     }
-  }, [userChatIds]);
+  }, [userChatIds, id, isNew])
 
   const fetchChatIds = async () => {
     try {
-      const response = await fetch(`/api/get-chat-ids?id=${user.accountId}`);
-      const data = await response.json();
+      const response = await fetch("/api/get-chat-ids", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+      const data = await response.json()
       if (response.ok) {
         setUserChatIds(data.chatIds)
+        setChatIdsError(false)
       } else {
-        console.error(`Error fetching account's chats: ${data.error}`);
+        console.error("Error fetching account's chats: ", data.error)
+        if (response.status === 401) {
+          console.error('Unauthorized — token invalid or expired')
+          logout()
+          return
+        }
+        setChatIdsError(true)
+        setChat(null)
       }
-    } catch (error) {
-      console.error(`Error fetching account's chats: ${error}`);
+    } catch {
+      console.error("Error fetching account's chats")
+      setChatIdsError(true)
+      setChat(null)
     }
-  };
+  }
 
   const fetchChat = async () => {
     try {
-      const response = await fetch(`/api/get-chat?id=${router.query.id}`)
+      const response = await fetch(`/api/get-chat?id=${id}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+        }
+      })
       const data = await response.json()
       if (response.ok) {
         setChat(data.chat)
+        return data.chat
       } else {
-        console.error(`Error fetching chat: ${data.error}`);
+        console.error("Error fetching chat: ", data.error)
+        if (response.status === 401) {
+          console.error('Unauthorized — token invalid or expired')
+          logout()
+          return
+        }
+        setChat(null)
+        return null
       }
-    } catch (error) {
-      console.error(`Error fetching chat: ${error}`);
+    } catch {
+      console.error("Error fetching chat")
+      setChat(null)
+      return null
     }
   }
 
   return (
-    <Home chat={chat} />
+    <Home chat={chat === null ? null : chat} />
   )
 }

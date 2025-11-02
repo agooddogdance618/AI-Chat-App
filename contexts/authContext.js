@@ -5,27 +5,38 @@ const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null)
+    const [loading, setLoading] = useState(true)
     const router = useRouter()
 
     useEffect(() => {
+        if (router.pathname == "/signin" || router.pathname == "/register") return
         const token = localStorage.getItem('token')
         if (token) {
             fetchUser(token)
+        } else {
+            router.replace('/signin')
+            setLoading(false)
+            return
         }
-    }, [])
+    }, [router.asPath])
 
     const fetchUser = async (token) => {
         try {
             const res = await fetch('/api/verify', {
+                method: "GET",
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`,
                 },
             })
-            if (!res.ok) throw new Error('Failed to fetch user')
             const data = await res.json()
+            if (!res.ok) {
+                console.error(data.error)
+                logout()
+                return
+            }
             setUser(data.account)
-        } catch (err) {
-            setUser(null)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -41,25 +52,30 @@ export const AuthProvider = ({ children }) => {
                     password
                 })
             })
-            if (!res.ok) throw new Error('Login failed')
             const data = await res.json()
+            if (!res.ok) return data.error || "Login failed"
             setUser(data.account)
             localStorage.setItem('token', data.token)
             fetchUser(data.token)
-            router.push('/')
-        } catch (err) {
-            console.error('Login failed', err)
+            router.replace('/')
+            return null
+        } catch {
+            return 'Something went wrong'
         }
     }
 
+    let redirecting = false
+
     const logout = () => {
+        if (redirecting) return
+        redirecting = true
         setUser(null)
         localStorage.removeItem('token')
-        router.push('/')
+        router.replace('/signin')
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     )

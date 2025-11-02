@@ -6,4 +6,12 @@ html,
 body,
 #__next {
     height: 100%;
+    overflow: hidden;
+}
+
+.language-latex,
+.language-markdown,
+.language-javascript,
+.katex-display {
+    white-space: normal !important;
 }

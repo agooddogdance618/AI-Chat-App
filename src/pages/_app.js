@@ -1,13 +1,12 @@
 import "@/styles/globals.css";
+import 'katex/dist/katex.min.css';
 import { AuthProvider } from "../../contexts/authContext";
-import Navbar from "../../components/Navbar";
 
 export default function App({ Component, pageProps }) {
   return (
     <AuthProvider>
-      <div className="flex flex-col h-full">
-        <Navbar />
-        <div className="flex-grow">
+      <div className="flex flex-col h-screen">
+        <div className="flex flex-1 overflow-hidden">
           <Component {...pageProps} />
         </div>
       </div>
